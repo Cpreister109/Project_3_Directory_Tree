@@ -17,18 +17,43 @@ from p3_env import *
 def build_tree(files):
     """Build the tree from (path, size) pairs and return the root folder."""
     root = Node(files[0][0].split("/")[0])
-    # TODO: for every (path, size): split the path at "/"
-    # TODO: walk down from the root, creating a folder Node for every missing folder (set parent and add it to children)
-    # TODO: create the file Node (is_file=True, size=size) in the last folder
-    raise NotImplementedError()
+
+    for path, size in files:
+        parts = path.split("/")
+        folder_names = parts[1:-1]   # skip root and file name at the end
+        file_name = parts[-1]
+
+        current = root
+
+        # add folders
+        for name in folder_names:
+            if name not in current.children:
+                current.children[name] = Node(name, parent=current)
+            current = current.children[name]
+
+        # add file
+        current.children[file_name] = Node(file_name, parent=current, is_file=True, size=size)
+
+    # Running time: d parts (d = depth) and n (n = number of files), so building the tree is O(n * d)
     return root
 
 
 def print_tree(node, depth=0):
     """Print the tree below node (2 spaces per level, children sorted by name)."""
-    # TODO: print the node: '  ' * depth + name + '/' for a folder, or name + ' (size KB)' for a file
-    # TODO: for a folder: call print_tree on every child (sorted by name) with depth + 1
-    raise NotImplementedError()
+    indent = "  " * depth   # 2 spaces per level of depth
+
+    if node.is_file:
+        # Files are leaves: print the name and size, nothing below them.
+        print(f"{indent}{node.name} ({node.size} KB)")
+    else:
+        # Folders get a trailing "/" and then we recurse into each child, one level deeper.
+        print(f"{indent}{node.name}/")
+        # sorted() just orders the names so the output is predictable.
+        # (Sorting here is only for display, not part of an algorithm we're studying.)
+        for child_name in sorted(node.children):
+            print_tree(node.children[child_name], depth + 1)
+
+    # Running time: every node is printed once, so it'sO(n)
 
 
 # ============================================================================
